@@ -9,13 +9,15 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vitorbionic.tasktrackercli.model.Task;
 
 @Repository
 public class TaskRepository {
     
     private static final String FILE_PATH = System.getProperty("user.home") + "/.task-cli/tasks.json";
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule());
     
     {
         new File(FILE_PATH).getParentFile().mkdirs();
@@ -24,7 +26,7 @@ public class TaskRepository {
     public List<Task> loadTasks() {
         try {
             File file = new File(FILE_PATH);
-            return Arrays.asList(objectMapper.readValue(file, Task[].class));
+            return new ArrayList<>(Arrays.asList(objectMapper.readValue(file, Task[].class)));
         } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
