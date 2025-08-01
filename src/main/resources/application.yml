@@ -1,0 +1,2 @@
+task:
+  file-path: "${user.home}/.task-cli/tasks.json"

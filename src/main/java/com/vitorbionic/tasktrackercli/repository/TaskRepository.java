@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,17 +16,22 @@ import com.vitorbionic.tasktrackercli.model.Task;
 @Repository
 public class TaskRepository {
     
-    private static final String FILE_PATH = System.getProperty("user.home") + "/.task-cli/tasks.json";
-    private ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule());
+    private final ObjectMapper objectMapper;
+    private final String filePath;
     
-    {
-        new File(FILE_PATH).getParentFile().mkdirs();
+    public TaskRepository(@Value("${task.file-path}") String filePath) {
+        this.filePath = filePath;
+        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+        new File(filePath).getParentFile().mkdirs();
     }
     
     public List<Task> loadTasks() {
         try {
-            File file = new File(FILE_PATH);
+            File file = new File(filePath);
+            if (!file.exists() || file.length() == 0) {
+                return new ArrayList<>();
+            }
             return new ArrayList<>(Arrays.asList(objectMapper.readValue(file, Task[].class)));
         } catch (IOException e) {
             e.printStackTrace();
@@ -35,7 +41,7 @@ public class TaskRepository {
     
     public void saveTasks(List<Task> tasks) {
         try {
-            objectMapper.writeValue(new File(FILE_PATH), tasks);
+            objectMapper.writeValue(new File(filePath), tasks);
         } catch (IOException e) {
             e.printStackTrace();
         }
